@@ -3,7 +3,7 @@
 
 import { isIP } from 'node:net'
 import type { Request } from 'express'
-import type { Store, EnabledValidations } from './types.js'
+import type { Store, EnabledValidations, License } from './types.js'
 
 /**
  * An error thrown/returned when a validation error occurs.
@@ -198,6 +198,24 @@ const validations = {
 
 		keys.push(prefixedKey)
 	},
+
+	// /**
+	//  * Ensures a given key is incremented only once per request.
+	//  *
+	//  * @param request {Request} - The Express request object.
+	//  * @param license {License | undefined} - The check license class.
+	//  * @param key {string} - The key used to store the client's hit count.
+	//  *
+	//  * @returns {void}
+	//  */
+	// licenseCheck(request: Request, license: License | undefined, key: string) {
+	// 	if (license?.ent != "prem") {
+	// 		throw new ValidationError(
+	// 			'TU_TO_GYA',
+	// 			`tu to gya, galat req`,
+	// 		)
+	// 	}
+	// },
 
 	/**
 	 * Warns the user that the behaviour for `max: 0` / `limit: 0` is
