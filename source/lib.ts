@@ -1,6 +1,3 @@
-// /source/lib.ts
-// The option parser and rate limiting middleware
-
 import type { Request, Response, NextFunction, RequestHandler } from 'express'
 import type RedisStore from 'rate-limit-redis'
 import type {
@@ -124,7 +121,7 @@ type Configuration = {
 	store: Store
 	validations: Validations
 	passOnStoreError: boolean
-	license?: License
+	license?: License[]
 	locations?: Locations[]
 	redisStore?: RedisStore
 }
@@ -322,6 +319,8 @@ const rateLimit = (
 	console.log('DELETE LOG the passedOptions is', JSON.stringify(passedOptions))
 	// Parse the options and add the default values for unspecified options
 	const config = parseOptions(passedOptions ?? {})
+	console.log('999999', config)
+
 	const options = getOptionsFromConfig(config)
 
 	// The limiter shouldn't be created in response to a request (usually)
@@ -384,9 +383,10 @@ const rateLimit = (
 			// Const getClientDetails = await config.store.get!(key)
 			// console.log('getClientDetails', getClientDetails)
 			console.log('augmentedRequest', augmentedRequest?.user)
-			licenseAndLocationsCheck(request, config?.license, totalHits, {
+			licenseAndLocationsCheck(request, totalHits, {
 				locations: locations?.length ? locations : [],
-				value: augmentedRequest?.user?.license,
+				license: config?.license?.length ? config?.license : [],
+				userLicense: augmentedRequest?.user?.license,
 			})
 			// Get the limit (max number of hits) for each client.
 			const retrieveLimit =
@@ -487,62 +487,31 @@ const rateLimit = (
 
 	const licenseAndLocationsCheck = (
 		request: Request,
-		license: License | undefined,
 		hits: number,
 		args: {
 			locations: Locations[]
-			value: string | undefined
+			license: License[]
+			userLicense: string | undefined
 		},
 	) => {
-		console.log('argsvalue', args.value)
-		// Based on key check if user have unlimited
-		switch (args.value) {
-			case 'unlimited': {
-				console.log('Tum aage bdo hm tumhare sath hey')
-				break
-			}
+		const suitableLicense = args.license.find(
+			(a) => a.tier === args?.userLicense,
+		)
+		console.log('args is', args)
+		console.log('----', suitableLicense)
 
-			case 'pro': {
-				// You will have license.pro
-				locationCheck(request, args.locations, hits, license?.pro)
-				console.log('strict check hoga', license?.pro)
-				break
-			}
+		// If(!args?.userLicense){
+		//     return
+		// }
+		// let suitableLicense = args.license.find((a)=> a.tier === args?.userLicense)
+		// if(suitableLicense?.limit < 500){
+		//     //request get country fron request
+		//     let suitableCountry = args.locations.find((a)=> a.country === args?.userLicense)
+		// } else {
 
-			case 'basic': {
-				// You got license.basic
-				locationCheck(request, args.locations, hits, license?.basic)
-				console.log('strict check hoga', license?.basic)
-				break
-			}
-
-			default: {
-				locationCheck(request, args.locations, hits, 100)
-				console.log('strict check hoga', license?.basic)
-				break
-			}
-		}
-	}
-
-	const locationCheck = (
-		request: Request,
-		locations: Locations[],
-		totalHits: number,
-		allowedHits: number | undefined,
-	) => {
-		for (const location of locations) {
-			for (const locationKey of Object.keys(location)) {
-				if (
-					location[locationKey] > totalHits ||
-					location[locationKey] > allowedHits!
-				) {
-					throw new ValidationError(
-						'ERR_YOUR_MEMBERSHIP_HAS_MET_DAILY_REQUIREMENT',
-						`too many requests made , you've reached your maximum alloted api requests.`,
-					)
-				}
-			}
-		}
+		// }
+		// //let suitableLicense = args.license.find((a)=> a.tier === args?.userLicense)
+		// console.log('argsvalue', args.userLicense)
 	}
 
 	// Export the store's function to reset and fetch the rate limit info for a
@@ -557,15 +526,15 @@ const rateLimit = (
 	return middleware as RateLimitRequestHandler
 }
 
-class ValidationError extends Error {
-	constructor(
-		public code: string,
-		message: string,
-	) {
-		super(message)
-		this.name = 'ValidationError'
-	}
-}
+// Class ValidationError extends Error {
+//     constructor(
+//         public code: string,
+//         message: string,
+//     ) {
+//         super(message)
+//         this.name = 'ValidationError'
+//     }
+// }
 
 // Export it to the world!
 export default rateLimit

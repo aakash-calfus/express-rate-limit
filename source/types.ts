@@ -1,6 +1,3 @@
-// /source/types.ts
-// All the types used by this package
-
 import type { Request, Response, NextFunction, RequestHandler } from 'express'
 import type RedisStore from 'rate-limit-redis'
 import type { Validations } from './validations.js'
@@ -225,13 +222,13 @@ export type EnabledValidations = {
 }
 
 export type Locations = {
-	[key: string]: number
+	country: string
+	limit: number
 }
 
 export type License = {
-	ent: string
-	pro: number
-	basic: number
+	tier: string
+	limit: number
 }
 
 /**
@@ -377,7 +374,7 @@ export type Options = {
 	 */
 	passOnStoreError: boolean
 
-	license?: License
+	license?: License[]
 
 	locations?: Locations[]
 
