@@ -208,9 +208,27 @@ const validations = {
 	 *
 	 * @returns {void}
 	 */
-	licenseCheck(request: Request, license: License | undefined, key: string) {
-		if (license?.ent !== 'prem') {
-			throw new ValidationError('TU_TO_GYA', `tu to gya, galat req`)
+	licenseAndLocationsCheck(
+		request: Request,
+		license: License | undefined,
+		key: string,
+		hits: any,
+	) {
+		// Based on key check if user have unlimited
+		// let val = abc.get(key)
+		const value = {
+			ent: 'unlimited',
+			pro: 1000,
+			basic: 500,
+		}
+		if (license?.ent === 'unlimited') {
+			console.log('Tum aage bdo hm tumhare sath hey')
+		} else if (value.ent === 'pro') {
+			// You will have license.pro
+			console.log('ruko check krke btate hey')
+		} else if (value.ent === 'basic') {
+			// You got license.basic
+			console.log('strict check hoga')
 		}
 	},
 

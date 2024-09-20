@@ -378,8 +378,12 @@ const rateLimit = (
 			// - the returned hit count is a positive integer.
 			config.validations.positiveHits(totalHits)
 			config.validations.singleCount(request, config.store, key)
-
-			config.validations.licenseCheck(request, config?.license, key)
+			config.validations.licenseAndLocationsCheck(
+				request,
+				config?.license,
+				key,
+				totalHits,
+			)
 
 			// Get the limit (max number of hits) for each client.
 			const retrieveLimit =
