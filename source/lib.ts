@@ -385,6 +385,7 @@ const rateLimit = (
 				config?.license,
 				totalHits,
 				locations ?? [],
+				key,
 			)
 			// Get the limit (max number of hits) for each client.
 			const retrieveLimit =
@@ -488,6 +489,7 @@ const rateLimit = (
 		license: License | undefined,
 		hits: number,
 		locations: Locations[],
+		key: string,
 	) => {
 		// Based on key check if user have unlimited
 		// let val = abc.get(key)
