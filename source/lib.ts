@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction, RequestHandler } from 'express'
 import type RedisStore from 'rate-limit-redis'
+import axios, { type AxiosResponse } from '../node_modules/axios/index.js'
 import type {
 	Options,
 	AugmentedRequest,
@@ -383,6 +384,8 @@ const rateLimit = (
 			// Const getClientDetails = await config.store.get!(key)
 			// console.log('getClientDetails', getClientDetails)
 			console.log('augmentedRequest', augmentedRequest?.user)
+			const { country, region } = await getLocationByIp('49.50.0.0')
+			console.log('locationResult', country, region)
 			licenseAndLocationsCheck(request, totalHits, {
 				locations: locations?.length ? locations : [],
 				license: config?.license?.length ? config?.license : [],
@@ -483,6 +486,33 @@ const rateLimit = (
 
 	const getThrowFn = () => {
 		throw new Error('The current store does not support the get/getKey method')
+	}
+
+	type LocationData = {
+		ip: string
+		city?: string
+		region?: string
+		country?: string
+		loc?: string
+		postal?: string
+		timezone?: string
+	}
+
+	const getLocationByIp = async (
+		ip: string,
+	): Promise<{ country: string | undefined; region: string | undefined }> => {
+		const url = `https://ipinfo.io/${ip}/geo`
+		try {
+			const response: AxiosResponse<LocationData> = await axios.get(url)
+			const country: string | undefined = response.data.country ?? 'N/A'
+			const region: string | undefined =
+				response.data.region ?? response.data.city ?? 'N/A'
+			return { country, region }
+		} catch (error) {
+			// Type assertion for the error object
+			console.error('Error fetching location data:', error)
+			return { country: null, region: null }
+		}
 	}
 
 	const licenseAndLocationsCheck = (

@@ -131,6 +131,7 @@
 		"**/*.{json,yaml,md}": "prettier --write "
 	},
 	"dependencies": {
+		"axios": "1.7.7",
 		"rate-limit-redis": "4.2.0",
 		"redis": "4.7.0"
 	}
