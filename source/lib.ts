@@ -14,6 +14,8 @@ import type {
 	DraftHeadersVersion,
 	RateLimitInfo,
 	EnabledValidations,
+	License,
+	Locations,
 } from './types.js'
 import {
 	setLegacyHeaders,
@@ -116,6 +118,8 @@ type Configuration = {
 	store: Store
 	validations: Validations
 	passOnStoreError: boolean
+	license?: License
+	locations?: Locations[]
 }
 
 /**
@@ -252,6 +256,8 @@ const parseOptions = (passedOptions: Partial<Options>): Configuration => {
 		store: promisifyStore(notUndefinedOptions.store ?? new MemoryStore()),
 		// Print an error to the console if a few known misconfigurations are detected.
 		validations,
+		license: passedOptions.license,
+		locations: passedOptions.locations,
 	}
 
 	// Ensure that the store passed implements the `Store` interface

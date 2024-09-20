@@ -223,6 +223,16 @@ export type EnabledValidations = {
 	[key in keyof Omit<Validations, 'enabled' | 'disable'> | 'default']?: boolean
 }
 
+export type Locations = {
+	[key: string]: number
+}
+
+export type License = {
+	ent: string
+	pro: number
+	basic: number
+}
+
 /**
  * The configuration options for the rate limiter.
  */
@@ -365,6 +375,10 @@ export type Options = {
 	 * If the Store generates an error, allow the request to pass.
 	 */
 	passOnStoreError: boolean
+
+	license?: License
+
+	locations?: Locations[]
 }
 
 /**
