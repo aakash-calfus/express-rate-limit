@@ -3,7 +3,7 @@
 
 import { isIP } from 'node:net'
 import type { Request } from 'express'
-import type { Store, EnabledValidations, License } from './types.js'
+import type { Store, EnabledValidations, License, Locations } from './types.js'
 
 /**
  * An error thrown/returned when a validation error occurs.
@@ -213,6 +213,7 @@ const validations = {
 		license: License | undefined,
 		key: string,
 		hits: any,
+		locations: Locations[],
 	) {
 		// Based on key check if user have unlimited
 		// let val = abc.get(key)
@@ -225,11 +226,36 @@ const validations = {
 			console.log('Tum aage bdo hm tumhare sath hey')
 		} else if (value.ent === 'pro') {
 			// You will have license.pro
-			console.log('ruko check krke btate hey')
+			locationCheck(request, locations, key, hits)
 		} else if (value.ent === 'basic') {
 			// You got license.basic
-			console.log('strict check hoga')
+			locationCheck(request, locations, key, hits)
 		}
+	},
+
+	/**
+	 * Checks location.
+	 *
+	 * @param request {Request} - The Express request object.
+	 * @param locations {Locations[] | undefined} - check locations.
+	 * @param key {string} - The key used to store the client's hit count.
+	 *
+	 * @returns {void}
+	 */
+
+	locationCheck(
+		request: Request,
+		locations: Locations[] | undefined,
+		key: string,
+		totalHits: number,
+	) {
+		console.log('DELETE LOG the totalHits is', totalHits)
+		for (const location of locations) {
+			console.log('DELETE LOG', location)
+		}
+
+		console.log('DELETE LOG the request is', JSON.stringify(request))
+		console.log('DELETE LOG the key is', key)
 	},
 
 	/**
@@ -410,4 +436,13 @@ export const getValidations = (
 	}
 
 	return wrappedValidations
+}
+
+function locationCheck(
+	request: Request,
+	locations: Locations[],
+	key: string,
+	hits: any,
+) {
+	throw new Error('Function not implemented.')
 }
