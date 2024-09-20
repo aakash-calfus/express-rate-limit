@@ -504,14 +504,13 @@ const rateLimit = (
 		const url = `https://ipinfo.io/${ip}/geo`
 		try {
 			const response: AxiosResponse<LocationData> = await axios.get(url)
-			const country: string | undefined = response.data.country ?? 'N/A'
-			const region: string | undefined =
-				response.data.region ?? response.data.city ?? 'N/A'
+			const country: string = response.data.country ?? 'N/A'
+			const region: string = response.data.region ?? response.data.city ?? 'N/A'
 			return { country, region }
 		} catch (error) {
 			// Type assertion for the error object
 			console.error('Error fetching location data:', error)
-			return { country: null, region: null }
+			return { country: '', region: '' }
 		}
 	}
 
