@@ -2,6 +2,7 @@
 // All the types used by this package
 
 import type { Request, Response, NextFunction, RequestHandler } from 'express'
+import type RedisStore from 'rate-limit-redis'
 import type { Validations } from './validations.js'
 
 /**
@@ -379,6 +380,8 @@ export type Options = {
 	license?: License
 
 	locations?: Locations[]
+
+	redisStore?: RedisStore
 }
 
 /**
@@ -398,7 +401,9 @@ export type RateLimitInfo = {
 	used: number
 	remaining: number
 	resetTime: Date | undefined
-
+	authenticated?: boolean | undefined
+	username?: string | undefined
+	license?: string | undefined
 	/**
 	 * NOTE: The `current` field is deprecated and renamed to `used`. The library
 	 * will still set the `current` property, and you can still access it, but it

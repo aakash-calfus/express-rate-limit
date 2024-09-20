@@ -2,6 +2,7 @@
 // The option parser and rate limiting middleware
 
 import type { Request, Response, NextFunction, RequestHandler } from 'express'
+import type RedisStore from 'rate-limit-redis'
 import type {
 	Options,
 	AugmentedRequest,
@@ -125,6 +126,7 @@ type Configuration = {
 	passOnStoreError: boolean
 	license?: License
 	locations?: Locations[]
+	redisStore?: RedisStore
 }
 
 /**
@@ -263,6 +265,7 @@ const parseOptions = (passedOptions: Partial<Options>): Configuration => {
 		validations,
 		license: passedOptions.license,
 		locations: passedOptions.locations,
+		redisStore: passedOptions.redisStore,
 	}
 	console.log('DELETE LOG config value is', JSON.stringify(config))
 	// Ensure that the store passed implements the `Store` interface
@@ -378,14 +381,13 @@ const rateLimit = (
 			// - the returned hit count is a positive integer.
 			config.validations.positiveHits(totalHits)
 			config.validations.singleCount(request, config.store, key)
-			const getClientDetails = await config.store.get!(key)
-			console.log('getClientDetails', getClientDetails)
-			licenseAndLocationsCheck(
-				request,
-				config?.license,
-				totalHits,
-				locations ?? [],
-			)
+			// Const getClientDetails = await config.store.get!(key)
+			// console.log('getClientDetails', getClientDetails)
+			console.log('augmentedRequest', augmentedRequest?.user)
+			licenseAndLocationsCheck(request, config?.license, totalHits, {
+				locations: locations?.length ? locations : [],
+				value: augmentedRequest?.user?.license ?? null,
+			})
 			// Get the limit (max number of hits) for each client.
 			const retrieveLimit =
 				typeof config.limit === 'function'
@@ -487,12 +489,10 @@ const rateLimit = (
 		request: Request,
 		license: License | undefined,
 		hits: number,
-		locations: Locations[],
+		args: { locations: Locations[]; value: string | undefined },
 	) => {
 		// Based on key check if user have unlimited
-		// let value = abc.get(key)
-		const value = 'unlimited'
-		switch (value) {
+		switch (args.value) {
 			case 'unlimited': {
 				console.log('Tum aage bdo hm tumhare sath hey')
 				break
@@ -500,20 +500,20 @@ const rateLimit = (
 
 			case 'pro': {
 				// You will have license.pro
-				locationCheck(request, locations, hits, license?.pro)
+				locationCheck(request, args.locations, hits, license?.pro)
 				console.log('strict check hoga', license?.pro)
 				break
 			}
 
 			case 'basic': {
 				// You got license.basic
-				locationCheck(request, locations, hits, license?.basic)
+				locationCheck(request, args.locations, hits, license?.basic)
 				console.log('strict check hoga', license?.basic)
 				break
 			}
 
 			default: {
-				locationCheck(request, locations, hits, 100)
+				locationCheck(request, args.locations, hits, 100)
 				console.log('strict check hoga', license?.basic)
 				break
 			}
@@ -528,15 +528,13 @@ const rateLimit = (
 	) => {
 		console.log('DELETE LOG the totalHits is', totalHits)
 
-		if (locations !== undefined || locations !== null) {
+		if (locations !== undefined && locations !== null) {
 			for (const location of locations) {
 				console.log('DELETE LOG', location)
 			}
 		} else {
 			console.log('DELETE LOG this is undefined ')
 		}
-
-		console.log('DELETE LOG the request is', JSON.stringify(request))
 	}
 
 	// Export the store's function to reset and fetch the rate limit info for a

@@ -129,5 +129,9 @@
 	"lint-staged": {
 		"{source,test}/**/*.ts": "xo --fix",
 		"**/*.{json,yaml,md}": "prettier --write "
+	},
+	"dependencies": {
+		"rate-limit-redis": "4.2.0",
+		"redis": "4.7.0"
 	}
 }
