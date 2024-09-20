@@ -489,7 +489,10 @@ const rateLimit = (
 		request: Request,
 		license: License | undefined,
 		hits: number,
-		args: { locations: Locations[]; value: string | undefined },
+		args: {
+			locations: Locations[]
+			value: string | undefined
+		},
 	) => {
 		// Based on key check if user have unlimited
 		switch (args.value) {
