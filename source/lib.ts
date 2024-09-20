@@ -385,7 +385,6 @@ const rateLimit = (
 				config?.license,
 				totalHits,
 				locations ?? [],
-				key,
 			)
 			// Get the limit (max number of hits) for each client.
 			const retrieveLimit =
@@ -489,38 +488,35 @@ const rateLimit = (
 		license: License | undefined,
 		hits: number,
 		locations: Locations[],
-		key: string,
 	) => {
 		// Based on key check if user have unlimited
-		// let val = abc.get(key)
-		const value = {
-			ent: 'unlimited',
-			pro: 1000,
-			basic: 500,
-		}
-		switch (value?.ent) {
+		// let value = abc.get(key)
+		const value = 'unlimited'
+		switch (value) {
 			case 'unlimited': {
 				console.log('Tum aage bdo hm tumhare sath hey')
-
 				break
 			}
 
 			case 'pro': {
 				// You will have license.pro
-				locationCheck(request, locations, hits)
+				locationCheck(request, locations, hits, license?.pro)
 				console.log('strict check hoga', license?.pro)
-
 				break
 			}
 
 			case 'basic': {
 				// You got license.basic
-				locationCheck(request, locations, hits)
+				locationCheck(request, locations, hits, license?.basic)
 				console.log('strict check hoga', license?.basic)
-
 				break
 			}
-			// No default
+
+			default: {
+				locationCheck(request, locations, hits, 100)
+				console.log('strict check hoga', license?.basic)
+				break
+			}
 		}
 	}
 
@@ -528,6 +524,7 @@ const rateLimit = (
 		request: Request,
 		locations: Locations[],
 		totalHits: number,
+		allowedHits: number | undefined,
 	) => {
 		console.log('DELETE LOG the totalHits is', totalHits)
 
