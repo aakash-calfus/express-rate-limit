@@ -378,15 +378,14 @@ const rateLimit = (
 			// - the returned hit count is a positive integer.
 			config.validations.positiveHits(totalHits)
 			config.validations.singleCount(request, config.store, key)
-			config.validations.licenseAndLocationsCheck(
+			const getClientDetails = await config.store.get!(key)
+			console.log('getClientDetails', getClientDetails)
+			licenseAndLocationsCheck(
 				request,
 				config?.license,
-				key,
 				totalHits,
 				locations ?? [],
-				config.store,
 			)
-
 			// Get the limit (max number of hits) for each client.
 			const retrieveLimit =
 				typeof config.limit === 'function'
@@ -482,6 +481,63 @@ const rateLimit = (
 
 	const getThrowFn = () => {
 		throw new Error('The current store does not support the get/getKey method')
+	}
+
+	const licenseAndLocationsCheck = (
+		request: Request,
+		license: License | undefined,
+		hits: number,
+		locations: Locations[],
+	) => {
+		// Based on key check if user have unlimited
+		// let val = abc.get(key)
+		const value = {
+			ent: 'unlimited',
+			pro: 1000,
+			basic: 500,
+		}
+		switch (value?.ent) {
+			case 'unlimited': {
+				console.log('Tum aage bdo hm tumhare sath hey')
+
+				break
+			}
+
+			case 'pro': {
+				// You will have license.pro
+				locationCheck(request, locations, hits)
+				console.log('strict check hoga', license?.pro)
+
+				break
+			}
+
+			case 'basic': {
+				// You got license.basic
+				locationCheck(request, locations, hits)
+				console.log('strict check hoga', license?.basic)
+
+				break
+			}
+			// No default
+		}
+	}
+
+	const locationCheck = (
+		request: Request,
+		locations: Locations[],
+		totalHits: number,
+	) => {
+		console.log('DELETE LOG the totalHits is', totalHits)
+
+		if (locations !== undefined || locations !== null) {
+			for (const location of locations) {
+				console.log('DELETE LOG', location)
+			}
+		} else {
+			console.log('DELETE LOG this is undefined ')
+		}
+
+		console.log('DELETE LOG the request is', JSON.stringify(request))
 	}
 
 	// Export the store's function to reset and fetch the rate limit info for a

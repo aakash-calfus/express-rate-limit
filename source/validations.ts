@@ -3,7 +3,7 @@
 
 import { isIP } from 'node:net'
 import type { Request } from 'express'
-import type { Store, EnabledValidations, License, Locations } from './types.js'
+import type { Store, EnabledValidations } from './types.js'
 
 /**
  * An error thrown/returned when a validation error occurs.
@@ -200,96 +200,6 @@ const validations = {
 	},
 
 	/**
-	 * Ensures a given key is incremented only once per request.
-	 *
-	 * @param request {Request} - The Express request object.
-	 * @param license {License | undefined} - The check license class.
-	 * @param key {string} - The key used to store the client's hit count.
-	 *
-	 * @returns {void}
-	 */
-	licenseAndLocationsCheck(
-		request: Request,
-		license: License | undefined,
-		key: string,
-		hits: any,
-		locations: Locations[],
-		store: Store,
-	) {
-		let storeKeys = singleCountKeys.get(request)
-		console.log('storeKeys', storeKeys, 'request')
-		if (!storeKeys) {
-			console.log('inside check')
-			storeKeys = new Map()
-			singleCountKeys.set(request, storeKeys)
-		}
-
-		console.log('storeKeys', storeKeys)
-
-		// Based on key check if user have unlimited
-		// let val = abc.get(key)
-		const value = {
-			ent: 'unlimited',
-			pro: 1000,
-			basic: 500,
-		}
-		switch (value?.ent) {
-			case 'unlimited': {
-				console.log('Tum aage bdo hm tumhare sath hey')
-
-				break
-			}
-
-			case 'pro': {
-				// You will have license.pro
-				locationCheck(request, locations, key, hits)
-				console.log('strict check hoga', license?.pro)
-
-				break
-			}
-
-			case 'basic': {
-				// You got license.basic
-				locationCheck(request, locations, key, hits)
-				console.log('strict check hoga', license?.basic)
-
-				break
-			}
-			// No default
-		}
-	},
-
-	/**
-	 * Checks location.
-	 *
-	 * @param request {Request} - The Express request object.
-	 * @param locations {Locations[]} - check locations.
-	 * @param key {string} - The key used to store the client's hit count.
-	 *
-	 * @returns {void}
-	 */
-
-	locationCheck(
-		request: Request,
-		locations: Locations[],
-		key: string,
-		totalHits: number,
-	) {
-		console.log('DELETE LOG the totalHits is', totalHits)
-
-		if (locations !== undefined || locations !== null) {
-			for (const location of locations) {
-				console.log('DELETE LOG', location)
-			}
-		} else {
-			console.log('DELETE LOG this is undefined ')
-		}
-
-		console.log('DELETE LOG the request is', JSON.stringify(request))
-		console.log('DELETE LOG the key is', key)
-	},
-
-	/**
 	 * Warns the user that the behaviour for `max: 0` / `limit: 0` is
 	 * changing in the next major release.
 	 *
@@ -467,13 +377,4 @@ export const getValidations = (
 	}
 
 	return wrappedValidations
-}
-
-function locationCheck(
-	request: Request,
-	locations: Locations[],
-	key: string,
-	hits: any,
-) {
-	throw new Error('Function not implemented.')
 }
