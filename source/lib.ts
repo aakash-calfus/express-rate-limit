@@ -494,6 +494,7 @@ const rateLimit = (
 			value: string | undefined
 		},
 	) => {
+		console.log('argsvalue', args.value)
 		// Based on key check if user have unlimited
 		switch (args.value) {
 			case 'unlimited': {
