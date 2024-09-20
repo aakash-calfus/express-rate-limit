@@ -217,7 +217,9 @@ const validations = {
 		store: Store,
 	) {
 		let storeKeys = singleCountKeys.get(request)
+		console.log('storeKeys', storeKeys, 'request')
 		if (!storeKeys) {
+			console.log('inside check')
 			storeKeys = new Map()
 			singleCountKeys.set(request, storeKeys)
 		}
