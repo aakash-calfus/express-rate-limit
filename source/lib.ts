@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction, RequestHandler } from 'express'
-import type RedisStore from 'rate-limit-redis'
+import { type RedisClientType } from 'redis'
 import axios, { type AxiosResponse } from '../node_modules/axios/index.js'
 import type {
 	Options,
@@ -20,7 +20,6 @@ import {
 	setLegacyHeaders,
 	setDraft6Headers,
 	setDraft7Headers,
-	setRetryAfterHeader,
 } from './headers.js'
 import { getValidations, type Validations } from './validations.js'
 import MemoryStore from './memory-store.js'
@@ -124,7 +123,7 @@ type Configuration = {
 	passOnStoreError: boolean
 	license?: License[]
 	locations?: Locations[]
-	redisStore?: RedisStore
+	redisStore?: RedisClientType
 }
 
 /**
@@ -403,6 +402,8 @@ const rateLimit = (
 				// console.log('getClientDetails', getClientDetails)
 				const { country, region } = await getLocationByIp('49.50.0.0')
 				console.log('locationResult', country, region)
+				const test = await config?.redisStore?.get('abc')
+				console.log('testtesttest', test)
 				licenseAndLocationsCheck(totalHits, {
 					locations: locations?.length ? locations : [],
 					license: config?.license?.length ? config?.license : [],

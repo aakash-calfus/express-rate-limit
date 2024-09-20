@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction, RequestHandler } from 'express'
-import type RedisStore from 'rate-limit-redis'
+import { type RedisClientType } from 'redis'
 import type { Validations } from './validations.js'
 
 /**
@@ -378,7 +378,7 @@ export type Options = {
 
 	locations?: Locations[]
 
-	redisStore?: RedisStore
+	redisStore?: RedisClientType
 }
 
 /**
