@@ -386,7 +386,7 @@ const rateLimit = (
 			console.log('augmentedRequest', augmentedRequest?.user)
 			licenseAndLocationsCheck(request, config?.license, totalHits, {
 				locations: locations?.length ? locations : [],
-				value: augmentedRequest?.user?.license ?? null,
+				value: augmentedRequest?.user?.license,
 			})
 			// Get the limit (max number of hits) for each client.
 			const retrieveLimit =
