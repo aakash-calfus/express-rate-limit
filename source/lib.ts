@@ -481,14 +481,14 @@ const rateLimit = (
 
 			// If the client has exceeded their rate limit, set the Retry-After header
 			// and call the `handler` function.
-			if (totalHits > limit) {
-				if (config.legacyHeaders || config.standardHeaders) {
-					setRetryAfterHeader(response, info, config.windowMs)
-				}
+			// if (totalHits > limit) {
+			// 	if (config.legacyHeaders || config.standardHeaders) {
+			// 		setRetryAfterHeader(response, info, config.windowMs)
+			// 	}
 
-				config.handler(request, response, next, options)
-				return
-			}
+			// 	config.handler(request, response, next, options)
+			// 	return
+			// }
 
 			next()
 		},
@@ -554,6 +554,8 @@ const rateLimit = (
 			args.authenticatedUser?.authenticated === false ||
 			!args.authenticatedUser?.authenticated
 		) {
+			console.log(' args.locations', args.locations, args.userCountry)
+
 			// Unauthenticated user
 			const matchingLocations = args.locations.find(
 				(a) => a.country === args.userCountry,
