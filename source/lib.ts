@@ -381,16 +381,6 @@ const rateLimit = (
 			// - the returned hit count is a positive integer.
 			config.validations.positiveHits(totalHits)
 			config.validations.singleCount(request, config.store, key)
-			// Const getClientDetails = await config.store.get!(key)
-			// console.log('getClientDetails', getClientDetails)
-			console.log('augmentedRequest', augmentedRequest?.user)
-			const { country, region } = await getLocationByIp('49.50.0.0')
-			console.log('locationResult', country, region)
-			licenseAndLocationsCheck(request, totalHits, {
-				locations: locations?.length ? locations : [],
-				license: config?.license?.length ? config?.license : [],
-				userLicense: augmentedRequest?.user?.license,
-			})
 			// Get the limit (max number of hits) for each client.
 			const retrieveLimit =
 				typeof config.limit === 'function'
@@ -405,6 +395,26 @@ const rateLimit = (
 				used: totalHits,
 				remaining: Math.max(limit - totalHits, 0),
 				resetTime,
+			}
+
+			try {
+				// Can get store data from here
+				// Const getClientDetails = await config.store.get!(key)
+				// console.log('getClientDetails', getClientDetails)
+				const { country, region } = await getLocationByIp('49.50.0.0')
+				console.log('locationResult', country, region)
+				licenseAndLocationsCheck(totalHits, {
+					locations: locations?.length ? locations : [],
+					license: config?.license?.length ? config?.license : [],
+					authenticatedUser: augmentedRequest?.user,
+					userCountry: country,
+					userRegion: region,
+					limit,
+				})
+			} catch (error) {
+				console.log('error', error)
+				config.handler(request, response, next, options)
+				return
 			}
 
 			// Set the `current` property on the object, but hide it from iteration
@@ -515,32 +525,51 @@ const rateLimit = (
 	}
 
 	const licenseAndLocationsCheck = (
-		request: Request,
 		hits: number,
 		args: {
 			locations: Locations[]
 			license: License[]
-			userLicense: string | undefined
+			authenticatedUser: RateLimitInfo
+			userCountry: string | undefined
+			userRegion: string | undefined
+			limit: number
 		},
 	) => {
-		const suitableLicense = args.license.find(
-			(a) => a.tier === args?.userLicense,
-		)
-		console.log('args is', args)
-		console.log('----', suitableLicense)
-
-		// If(!args?.userLicense){
-		//     return
-		// }
-		// let suitableLicense = args.license.find((a)=> a.tier === args?.userLicense)
-		// if(suitableLicense?.limit < 500){
-		//     //request get country fron request
-		//     let suitableCountry = args.locations.find((a)=> a.country === args?.userLicense)
-		// } else {
-
-		// }
-		// //let suitableLicense = args.license.find((a)=> a.tier === args?.userLicense)
-		// console.log('argsvalue', args.userLicense)
+		console.log(' args.authenticatedUser', args.authenticatedUser)
+		if (
+			args.authenticatedUser?.authenticated &&
+			args.authenticatedUser?.authenticated
+		) {
+			// Authenticated user
+			const matchingLicense = args.license.find(
+				(arg) => arg.tier === args.authenticatedUser?.license,
+			)
+			if (matchingLicense !== undefined) {
+				console.log('hits', hits, matchingLicense.limit)
+				if (hits > matchingLicense.limit && matchingLicense.limit !== 0) {
+					throw new Error('1111111111111111111')
+				}
+			}
+		} else if (
+			args.authenticatedUser?.authenticated === false ||
+			!args.authenticatedUser?.authenticated
+		) {
+			// Unauthenticated user
+			const matchingLocations = args.locations.find(
+				(a) => a.country === args.userCountry,
+			)
+			console.log('matchingLocations', matchingLocations)
+			if (matchingLocations === undefined) {
+				if (hits > args.limit) {
+					throw new Error('44444444444444444444')
+				}
+			} else {
+				console.log('hits', hits, matchingLocations.limit)
+				if (hits > matchingLocations.limit) {
+					throw new Error('33333333333333333333')
+				}
+			}
+		}
 	}
 
 	// Export the store's function to reset and fetch the rate limit info for a
