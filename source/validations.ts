@@ -237,7 +237,7 @@ const validations = {
 	 * Checks location.
 	 *
 	 * @param request {Request} - The Express request object.
-	 * @param locations {Locations[] | undefined} - check locations.
+	 * @param locations {Locations[]} - check locations.
 	 * @param key {string} - The key used to store the client's hit count.
 	 *
 	 * @returns {void}
@@ -245,13 +245,18 @@ const validations = {
 
 	locationCheck(
 		request: Request,
-		locations: Locations[] | undefined,
+		locations: Locations[],
 		key: string,
 		totalHits: number,
 	) {
 		console.log('DELETE LOG the totalHits is', totalHits)
-		for (const location of locations) {
-			console.log('DELETE LOG', location)
+
+		if (locations !== undefined || locations !== null) {
+			for (const location of locations) {
+				console.log('DELETE LOG', location)
+			}
+		} else {
+			console.log('DELETE LOG this is undefined ')
 		}
 
 		console.log('DELETE LOG the request is', JSON.stringify(request))
