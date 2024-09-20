@@ -526,14 +526,18 @@ const rateLimit = (
 		totalHits: number,
 		allowedHits: number | undefined,
 	) => {
-		console.log('DELETE LOG the totalHits is', totalHits)
-
-		if (locations !== undefined && locations !== null) {
-			for (const location of locations) {
-				console.log('DELETE LOG', location)
+		for (const location of locations) {
+			for (const locationKey of Object.keys(location)) {
+				if (
+					location[locationKey] > totalHits ||
+					location[locationKey] > allowedHits!
+				) {
+					throw new ValidationError(
+						'ERR_YOUR_MEMBERSHIP_HAS_MET_DAILY_REQUIREMENT',
+						`too many requests made , you've reached your maximum alloted api requests.`,
+					)
+				}
 			}
-		} else {
-			console.log('DELETE LOG this is undefined ')
 		}
 	}
 
@@ -547,6 +551,16 @@ const rateLimit = (
 			: getThrowFn
 
 	return middleware as RateLimitRequestHandler
+}
+
+class ValidationError extends Error {
+	constructor(
+		public code: string,
+		message: string,
+	) {
+		super(message)
+		this.name = 'ValidationError'
+	}
 }
 
 // Export it to the world!
