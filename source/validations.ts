@@ -214,7 +214,16 @@ const validations = {
 		key: string,
 		hits: any,
 		locations: Locations[],
+		store: Store,
 	) {
+		let storeKeys = singleCountKeys.get(request)
+		if (!storeKeys) {
+			storeKeys = new Map()
+			singleCountKeys.set(request, storeKeys)
+		}
+
+		console.log('storeKeys', storeKeys)
+
 		// Based on key check if user have unlimited
 		// let val = abc.get(key)
 		const value = {
@@ -222,14 +231,29 @@ const validations = {
 			pro: 1000,
 			basic: 500,
 		}
-		if (license?.ent === 'unlimited') {
-			console.log('Tum aage bdo hm tumhare sath hey')
-		} else if (value.ent === 'pro') {
-			// You will have license.pro
-			locationCheck(request, locations, key, hits)
-		} else if (value.ent === 'basic') {
-			// You got license.basic
-			locationCheck(request, locations, key, hits)
+		switch (value?.ent) {
+			case 'unlimited': {
+				console.log('Tum aage bdo hm tumhare sath hey')
+
+				break
+			}
+
+			case 'pro': {
+				// You will have license.pro
+				locationCheck(request, locations, key, hits)
+				console.log('strict check hoga', license?.pro)
+
+				break
+			}
+
+			case 'basic': {
+				// You got license.basic
+				locationCheck(request, locations, key, hits)
+				console.log('strict check hoga', license?.basic)
+
+				break
+			}
+			// No default
 		}
 	},
 

@@ -384,6 +384,7 @@ const rateLimit = (
 				key,
 				totalHits,
 				locations ?? [],
+				config.store,
 			)
 
 			// Get the limit (max number of hits) for each client.
