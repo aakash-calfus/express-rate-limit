@@ -47,6 +47,8 @@ const isLegacyStore = (store: LegacyStore | Store): store is LegacyStore =>
  * @returns {Store} - The promisified version of the store.
  */
 const promisifyStore = (passedStore: LegacyStore | Store): Store => {
+	console.log('DELETE LOG passedStore value is', JSON.stringify(passedStore))
+
 	if (!isLegacyStore(passedStore)) {
 		// It's not an old store, return as is
 		return passedStore
@@ -69,10 +71,13 @@ const promisifyStore = (passedStore: LegacyStore | Store): Store => {
 						resolve({ totalHits, resetTime })
 					},
 				)
+				console.log('DELETE LOG key value in PromisifiedStore', key)
 			})
 		}
 
 		async decrement(key: string): Promise<void> {
+			console.log('DELETE LOG the decrement having key', key)
+
 			return legacyStore.decrement(key)
 		}
 
@@ -259,7 +264,7 @@ const parseOptions = (passedOptions: Partial<Options>): Configuration => {
 		license: passedOptions.license,
 		locations: passedOptions.locations,
 	}
-
+	console.log('DELETE LOG config value is', JSON.stringify(config))
 	// Ensure that the store passed implements the `Store` interface
 	if (
 		typeof config.store.increment !== 'function' ||
@@ -311,6 +316,7 @@ const handleAsyncErrors =
 const rateLimit = (
 	passedOptions?: Partial<Options>,
 ): RateLimitRequestHandler => {
+	console.log('DELETE LOG the passedOptions is', JSON.stringify(passedOptions))
 	// Parse the options and add the default values for unspecified options
 	const config = parseOptions(passedOptions ?? {})
 	const options = getOptionsFromConfig(config)
@@ -335,9 +341,18 @@ const rateLimit = (
 
 			// Create an augmented request
 			const augmentedRequest = request as AugmentedRequest
+			const { license } = config
+			const { locations } = config
+
+			console.log(
+				`DELETE LOG the licence ${JSON.stringify(
+					license,
+				)} and locations ${JSON.stringify(locations)} `,
+			)
 
 			// Get a unique key for the client
 			const key = await config.keyGenerator(request, response)
+			console.log('DELETE LOG the key is', key)
 
 			// Increment the client's hit counter by one.
 			let totalHits = 0
