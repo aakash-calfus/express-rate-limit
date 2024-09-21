@@ -400,26 +400,35 @@ const rateLimit = (
 				// console.log('getClientDetails', getClientDetails)
 				const { country, region } = await getLocationByIp('49.50.0.0')
 				console.log('locationResult', country, region)
-				// If (country) {
-				// 	let loadBasedOnCountry: CountryLoad[] = [];
-				// 	console.log('loadBasedOnCountry', loadBasedOnCountry, country);
-				// 	const loadFromRedis = await config?.redisStore?.get("country");
-				// 	if (loadFromRedis) {
-				// 		loadBasedOnCountry = JSON.parse(loadFromRedis) as CountryLoad[];
-				// 	}
-				// 	let findCountryOfHit = loadBasedOnCountry.find(arg => arg.country === country);
-				// 	if (findCountryOfHit) {
-				// 		loadBasedOnCountry = loadBasedOnCountry.map(arg => {
-				// 			if (arg.country === country) {
-				// 				return { ...arg, load: arg.load + 1 };
-				// 			}
-				// 			return arg;
-				// 		});
-				// 	} else {
-				// 		loadBasedOnCountry.push({ country: country, load: 1 });
-				// 	}
-				// 	await config?.redisStore?.set("country", JSON.stringify(loadBasedOnCountry));
-				// }
+				if (country) {
+					let loadBasedOnCountry: CountryLoad[] = []
+					console.log('loadBasedOnCountry', loadBasedOnCountry, country)
+					const loadFromRedis = await config?.redisStore?.get('country')
+					if (loadFromRedis) {
+						loadBasedOnCountry = JSON.parse(loadFromRedis) as CountryLoad[]
+					}
+
+					const findCountryOfHit = loadBasedOnCountry.find(
+						(arg) => arg.country === country,
+					)
+					if (findCountryOfHit) {
+						loadBasedOnCountry = loadBasedOnCountry.map((arg) => {
+							if (arg.country === country) {
+								return { ...arg, load: arg.load + 1 }
+							}
+
+							return arg
+						})
+					} else {
+						loadBasedOnCountry.push({ country, load: 1 })
+					}
+
+					await config?.redisStore?.set(
+						'country',
+						JSON.stringify(loadBasedOnCountry),
+					)
+				}
+
 				licenseAndLocationsCheck(totalHits, {
 					locations: locations?.length ? locations : [],
 					license: config?.license?.length ? config?.license : [],
