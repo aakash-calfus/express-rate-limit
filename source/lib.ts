@@ -45,7 +45,7 @@ const isLegacyStore = (store: LegacyStore | Store): store is LegacyStore =>
  * @returns {Store} - The promisified version of the store.
  */
 const promisifyStore = (passedStore: LegacyStore | Store): Store => {
-	console.log('DELETE LOG passedStore value is', JSON.stringify(passedStore))
+	// Console.log('DELETE LOG passedStore value is', JSON.stringify(passedStore))
 
 	if (!isLegacyStore(passedStore)) {
 		// It's not an old store, return as is
@@ -69,12 +69,12 @@ const promisifyStore = (passedStore: LegacyStore | Store): Store => {
 						resolve({ totalHits, resetTime })
 					},
 				)
-				console.log('DELETE LOG key value in PromisifiedStore', key)
+				// Console.log('DELETE LOG key value in PromisifiedStore', key)
 			})
 		}
 
 		async decrement(key: string): Promise<void> {
-			console.log('DELETE LOG the decrement having key', key)
+			// Console.log('DELETE LOG the decrement having key', key)
 
 			return legacyStore.decrement(key)
 		}
@@ -264,7 +264,7 @@ const parseOptions = (passedOptions: Partial<Options>): Configuration => {
 		locations: passedOptions.locations,
 		redisStore: passedOptions.redisStore,
 	}
-	console.log('DELETE LOG config value is', JSON.stringify(config))
+	// Console.log('DELETE LOG config value is', JSON.stringify(config))
 	// Ensure that the store passed implements the `Store` interface
 	if (
 		typeof config.store.increment !== 'function' ||
@@ -316,11 +316,9 @@ const handleAsyncErrors =
 const rateLimit = (
 	passedOptions?: Partial<Options>,
 ): RateLimitRequestHandler => {
-	console.log('DELETE LOG the passedOptions is', JSON.stringify(passedOptions))
+	console.log('DELETE LOG the passedOptions is called')
 	// Parse the options and add the default values for unspecified options
 	const config = parseOptions(passedOptions ?? {})
-	console.log('999999', config)
-
 	const options = getOptionsFromConfig(config)
 
 	// The limiter shouldn't be created in response to a request (usually)
@@ -343,18 +341,18 @@ const rateLimit = (
 
 			// Create an augmented request
 			const augmentedRequest = request as AugmentedRequest
-			const { license } = config
+			// Const { license } = config
 			const { locations } = config
 
-			console.log(
-				`DELETE LOG the licence ${JSON.stringify(
-					license,
-				)} and locations ${JSON.stringify(locations)} `,
-			)
+			// Console.log(
+			// 	`DELETE LOG the licence ${JSON.stringify(
+			// 		license,
+			// 	)} and locations ${JSON.stringify(locations)} `,
+			// )
 
 			// Get a unique key for the client
 			const key = await config.keyGenerator(request, response)
-			console.log('DELETE LOG the key is', key)
+			// Console.log('DELETE LOG the key is', key)
 
 			// Increment the client's hit counter by one.
 			let totalHits = 0
@@ -402,8 +400,26 @@ const rateLimit = (
 				// console.log('getClientDetails', getClientDetails)
 				const { country, region } = await getLocationByIp('49.50.0.0')
 				console.log('locationResult', country, region)
-				const test = await config?.redisStore?.get('abc')
-				console.log('testtesttest', test)
+				// If (country) {
+				// 	let loadBasedOnCountry: CountryLoad[] = [];
+				// 	console.log('loadBasedOnCountry', loadBasedOnCountry, country);
+				// 	const loadFromRedis = await config?.redisStore?.get("country");
+				// 	if (loadFromRedis) {
+				// 		loadBasedOnCountry = JSON.parse(loadFromRedis) as CountryLoad[];
+				// 	}
+				// 	let findCountryOfHit = loadBasedOnCountry.find(arg => arg.country === country);
+				// 	if (findCountryOfHit) {
+				// 		loadBasedOnCountry = loadBasedOnCountry.map(arg => {
+				// 			if (arg.country === country) {
+				// 				return { ...arg, load: arg.load + 1 };
+				// 			}
+				// 			return arg;
+				// 		});
+				// 	} else {
+				// 		loadBasedOnCountry.push({ country: country, load: 1 });
+				// 	}
+				// 	await config?.redisStore?.set("country", JSON.stringify(loadBasedOnCountry));
+				// }
 				licenseAndLocationsCheck(totalHits, {
 					locations: locations?.length ? locations : [],
 					license: config?.license?.length ? config?.license : [],
@@ -499,6 +515,11 @@ const rateLimit = (
 		throw new Error('The current store does not support the get/getKey method')
 	}
 
+	type CountryLoad = {
+		country: string
+		load: number
+	}
+
 	type LocationData = {
 		ip: string
 		city?: string
@@ -545,11 +566,12 @@ const rateLimit = (
 			const matchingLicense = args.license.find(
 				(arg) => arg.tier === args.authenticatedUser?.license,
 			)
-			if (matchingLicense !== undefined) {
-				console.log('hits', hits, matchingLicense.limit)
-				if (hits > matchingLicense.limit && matchingLicense.limit !== 0) {
-					throw new Error('1111111111111111111')
-				}
+			if (
+				matchingLicense !== undefined && // Console.log('hits', hits, matchingLicense.limit)
+				hits > matchingLicense.limit &&
+				matchingLicense.limit !== 0
+			) {
+				throw new Error('1111111111111111111')
 			}
 		} else if (
 			args.authenticatedUser?.authenticated === false ||
@@ -566,11 +588,8 @@ const rateLimit = (
 				if (hits > args.limit) {
 					throw new Error('44444444444444444444')
 				}
-			} else {
-				console.log('hits', hits, matchingLocations.limit)
-				if (hits > matchingLocations.limit) {
-					throw new Error('33333333333333333333')
-				}
+			} else if (hits > matchingLocations.limit) {
+				throw new Error('33333333333333333333')
 			}
 		}
 	}
