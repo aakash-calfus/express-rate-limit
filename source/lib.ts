@@ -395,9 +395,6 @@ const rateLimit = (
 			}
 
 			try {
-				// Can get store data from here
-				// Const getClientDetails = await config.store.get!(key)
-				// console.log('getClientDetails', getClientDetails)
 				const { country, region } = await getLocationByIp('49.50.0.0')
 				console.log('locationResult', country, region)
 				if (country) {

@@ -1,6 +1,6 @@
 {
-	"name": "express-rate-limit",
-	"version": "7.4.0",
+	"name": "calfus-api-rate-limit",
+	"version": "1.0.1",
 	"description": "Basic IP rate-limiting middleware for Express. Use to limit repeated requests to public APIs and/or endpoints such as password reset.",
 	"author": {
 		"name": "Nathan Friedly",
@@ -10,8 +10,11 @@
 	"homepage": "https://github.com/express-rate-limit/express-rate-limit",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/express-rate-limit/express-rate-limit.git"
+		"url": "git+https://github.com/CalfusResearch/DD_AdvanceRateLimiter.git"
 	},
+	"publishConfig": {
+    	"registry": "https://calfus.jfrog.io/artifactory/api/npm/calfus-ada-scanner-npm/"
+  	},
 	"funding": "https://github.com/sponsors/express-rate-limit",
 	"keywords": [
 		"express-rate-limit",
@@ -56,8 +59,8 @@
 	},
 	"scripts": {
 		"clean": "del-cli dist/ coverage/ *.log *.tmp *.bak *.tgz",
-		"build:cjs": "esbuild --platform=node --bundle --target=es2022 --format=cjs --outfile=dist/index.cjs --footer:js=\"module.exports = rateLimit; module.exports.default = rateLimit; module.exports.rateLimit = rateLimit; module.exports.MemoryStore = MemoryStore;\" source/index.ts",
-		"build:esm": "esbuild --platform=node --bundle --target=es2022 --format=esm --outfile=dist/index.mjs source/index.ts",
+		"build:cjs": "esbuild --platform=node --bundle --target=es2022 --outfile=dist/index.cjs --footer:js=\"module.exports = rateLimit; module.exports.default = rateLimit; module.exports.rateLimit = rateLimit; module.exports.MemoryStore = MemoryStore;\" source/index.ts",
+		"build:esm": "esbuild --platform=node --bundle --target=es2022 --outfile=dist/index.mjs source/index.ts",
 		"build:types": "dts-bundle-generator --out-file=dist/index.d.ts source/index.ts && cp dist/index.d.ts dist/index.d.cts && cp dist/index.d.ts dist/index.d.mts",
 		"compile": "run-s clean build:*",
 		"docs": "cd docs && mintlify dev",
@@ -71,7 +74,8 @@
 		"test:ext": "cd test/external/ && bash run-all-tests",
 		"test": "run-s lint test:lib",
 		"pre-commit": "lint-staged",
-		"prepare": "run-s compile && husky install config/husky"
+		"prepare": "run-s compile && husky install config/husky",
+		"publish-lib": "npm run compile && npm publish"
 	},
 	"peerDependencies": {
 		"express": "4 || 5 || ^5.0.0-beta.1"
