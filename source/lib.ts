@@ -226,7 +226,9 @@ const parseOptions = (passedOptions: Partial<Options>): Configuration => {
 
 			// By default, use the IP address to rate limit users.
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-			return request.ip!
+			const augmentedRequest = request as AugmentedRequest
+			console.log('augmentedRequest', augmentedRequest?.clientIp);
+			return `${augmentedRequest.clientIp}`
 		},
 		async handler(
 			request: Request,
