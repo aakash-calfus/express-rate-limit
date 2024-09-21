@@ -131,6 +131,7 @@
 	},
 	"prettier": "@express-rate-limit/prettier",
 	"lint-staged": {
+		"{source,test}/**/*.ts": "xo --fix",
 		"**/*.{json,yaml,md}": "prettier --write "
 	},
 	"dependencies": {
