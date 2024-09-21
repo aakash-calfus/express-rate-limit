@@ -352,7 +352,7 @@ const rateLimit = (
 
 			// Get a unique key for the client
 			const key = await config.keyGenerator(request, response)
-			// Console.log('DELETE LOG the key is', key)
+			console.log('DELETE LOG the key is', augmentedRequest.clientIp)
 
 			// Increment the client's hit counter by one.
 			let totalHits = 0
@@ -395,12 +395,11 @@ const rateLimit = (
 			}
 
 			try {
-				console.log('keykey', key);
-				
-
+				console.log('keykey', key, 'totalHits', totalHits);
+			
 				const { country, region } = await getLocationByIp(key)
 				console.log('country', country, 'region', 'keykey', key)
-				if (country) {
+				if (country && country !== 'N/A') {
 					let loadBasedOnCountry: CountryLoad[] = []
 					console.log('loadBasedOnCountry', loadBasedOnCountry, country)
 					const loadFromRedis = await config?.redisStore?.get('country')
@@ -429,7 +428,7 @@ const rateLimit = (
 					)
 				}
 
-				await licenseAndLocationsCheck(totalHits, {
+				await licenseAndLocationsCheck({
 					locations: locations?.length ? locations : [],
 					license: config?.license?.length ? config?.license : [],
 					authenticatedUser: augmentedRequest?.user,
@@ -437,7 +436,8 @@ const rateLimit = (
 					userRegion: region,
 					limit,
 					config: config,
-					key: key
+					key: key,
+					totalHits: totalHits
 				})
 			} catch (error) {
 				console.log('error', error)
@@ -564,7 +564,6 @@ const rateLimit = (
 	}
 
 	const licenseAndLocationsCheck = async (
-		hits: number,
 		args: {
 			locations: Locations[]
 			license: License[]
@@ -573,11 +572,12 @@ const rateLimit = (
 			userRegion: string | undefined
 			limit: number,
 			config: Configuration,
-			key: string
+			key: string,
+			totalHits: number
 		}
 	) => {
-		console.log(' args.authenticatedUser', args?.authenticatedUser, 'hits', hits)
-		console.log(' args.authenticatedUser', args?.userCountry, 'hits', hits)
+		console.log(' args.authenticatedUser', args?.authenticatedUser, 'hits', args.totalHits)
+		console.log(' args.authenticatedUser', args?.userCountry, 'hits', args.totalHits)
 		if (
 			args.authenticatedUser?.authenticated &&
 			args.authenticatedUser?.authenticated
@@ -588,21 +588,22 @@ const rateLimit = (
 			)
 			if (
 				matchingLicense !== undefined && // Console.log('hits', hits, matchingLicense.limit)
-				hits > matchingLicense.limit &&
+				args.totalHits > matchingLicense.limit &&
 				matchingLicense.limit !== 0
 			) {
 				throw new Error('1111111111111111111')
 			}
-			console.log('matchingLicense', matchingLicense);
+			console.log('matchingLicense', matchingLicense, 'argstotalHits', args.totalHits);
 			let authUserDetails: AuthUser = {}
 			let authUser = await config?.redisStore?.get(args?.authenticatedUser.username!)
-			console.log('authUserauthUser', authUser);
+			console.log('authUserauthUser', authUser, 'args.totalHits', args.totalHits);
 			if (authUser) {
 				authUserDetails = JSON.parse(authUser) as AuthUser;
 				if (authUserDetails.requestsLeft !== "unlimited") {
+					console.log('setting requestsLeft', Number(matchingLicense?.limit) - Number(args.totalHits));
 					await config?.redisStore?.set(args?.authenticatedUser.username!, JSON.stringify({
 						ip: args.key,
-						requestsLeft: Number(matchingLicense?.limit) - hits,
+						requestsLeft: Number(matchingLicense?.limit) - Number(args.totalHits),
 						location: args.userCountry,
 						userName: args?.authenticatedUser.username!
 					}))
@@ -610,7 +611,7 @@ const rateLimit = (
 			} else {
 				await config?.redisStore?.set(args?.authenticatedUser.username!, JSON.stringify({
 					ip: args.key,
-					requestsLeft: matchingLicense?.limit === 0 ? "unlimited" : Number(matchingLicense?.limit) - hits,
+					requestsLeft: matchingLicense?.limit === 0 ? "unlimited" : Number(matchingLicense?.limit) - Number(args.totalHits),
 					location: args.userCountry,
 					userName: args?.authenticatedUser.username!
 				}))
@@ -626,17 +627,17 @@ const rateLimit = (
 			)
 			console.log('matchingLocations', matchingLocations)
 			if (matchingLocations === undefined) {
-				if (hits > args.limit) {
+				if (Number(args.totalHits) > Number(args.limit)) {
 					throw new Error('44444444444444444444')
 				}
-			} else if (hits > matchingLocations.limit) {
+			} else if (Number(args.totalHits) > Number(matchingLocations.limit)) {
 				throw new Error('33333333333333333333')
 			}
 
-			let leftCount = matchingLocations === undefined ? args.limit : matchingLocations?.limit
+			let leftCount = matchingLocations === undefined ? Number(args.limit) : Number(matchingLocations?.limit)
 			await config?.redisStore?.set(args.key, JSON.stringify({
 				ip: args.key,
-				requestsLeft: Number(leftCount) - hits,
+				requestsLeft: Number(leftCount) - Number(args.totalHits),
 				location: args.userCountry,
 				userName: null
 			}))

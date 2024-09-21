@@ -401,6 +401,7 @@ export type RateLimitInfo = {
 	authenticated?: boolean | undefined
 	username?: string | undefined
 	license?: string | undefined
+	clientIp?: string 
 	/**
 	 * NOTE: The `current` field is deprecated and renamed to `used`. The library
 	 * will still set the `current` property, and you can still access it, but it
