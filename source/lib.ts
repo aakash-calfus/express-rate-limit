@@ -19,7 +19,7 @@ import type {
 import {
 	setLegacyHeaders,
 	setDraft6Headers,
-	setDraft7Headers,
+	setDraft7Headers
 } from './headers.js'
 import { getValidations, type Validations } from './validations.js'
 import MemoryStore from './memory-store.js'
@@ -240,9 +240,9 @@ const parseOptions = (passedOptions: Partial<Options>): Configuration => {
 			const message: unknown =
 				typeof config.message === 'function'
 					? await (config.message as ValueDeterminingMiddleware<any>)(
-							request,
-							response,
-					  )
+						request,
+						response,
+					)
 					: config.message
 
 			// Send the response if writable.
@@ -294,14 +294,14 @@ const parseOptions = (passedOptions: Partial<Options>): Configuration => {
  */
 const handleAsyncErrors =
 	(fn: RequestHandler): RequestHandler =>
-	async (request: Request, response: Response, next: NextFunction) => {
-		try {
-			await Promise.resolve(fn(request, response, next)).catch(next)
-		} catch (error: unknown) {
-			/* istanbul ignore next */
-			next(error)
+		async (request: Request, response: Response, next: NextFunction) => {
+			try {
+				await Promise.resolve(fn(request, response, next)).catch(next)
+			} catch (error: unknown) {
+				/* istanbul ignore next */
+				next(error)
+			}
 		}
-	}
 
 /**
  *
@@ -395,6 +395,11 @@ const rateLimit = (
 			}
 
 			try {
+
+
+
+
+
 				const { country, region } = await getLocationByIp('49.50.0.0')
 				console.log('locationResult', country, region)
 				if (country) {
@@ -426,13 +431,15 @@ const rateLimit = (
 					)
 				}
 
-				licenseAndLocationsCheck(totalHits, {
+				await licenseAndLocationsCheck(totalHits, {
 					locations: locations?.length ? locations : [],
 					license: config?.license?.length ? config?.license : [],
 					authenticatedUser: augmentedRequest?.user,
 					userCountry: country,
 					userRegion: region,
 					limit,
+					config: config,
+					key: key
 				})
 			} catch (error) {
 				console.log('error', error)
@@ -508,7 +515,6 @@ const rateLimit = (
 			// 	if (config.legacyHeaders || config.standardHeaders) {
 			// 		setRetryAfterHeader(response, info, config.windowMs)
 			// 	}
-
 			// 	config.handler(request, response, next, options)
 			// 	return
 			// }
@@ -536,6 +542,13 @@ const rateLimit = (
 		timezone?: string
 	}
 
+	type AuthUser = {
+		ip?: string
+		requestsLeft?: number | string
+		location?: string | null
+		userName?: string | null
+	}
+
 	const getLocationByIp = async (
 		ip: string,
 	): Promise<{ country: string | undefined; region: string | undefined }> => {
@@ -552,7 +565,7 @@ const rateLimit = (
 		}
 	}
 
-	const licenseAndLocationsCheck = (
+	const licenseAndLocationsCheck = async (
 		hits: number,
 		args: {
 			locations: Locations[]
@@ -560,10 +573,12 @@ const rateLimit = (
 			authenticatedUser: RateLimitInfo
 			userCountry: string | undefined
 			userRegion: string | undefined
-			limit: number
-		},
+			limit: number,
+			config: Configuration,
+			key: string
+		}
 	) => {
-		console.log(' args.authenticatedUser', args.authenticatedUser)
+		console.log(' args.authenticatedUser', args, 'hits', hits)
 		if (
 			args.authenticatedUser?.authenticated &&
 			args.authenticatedUser?.authenticated
@@ -579,11 +594,32 @@ const rateLimit = (
 			) {
 				throw new Error('1111111111111111111')
 			}
+			console.log('matchingLicense', matchingLicense);
+			let authUserDetails: AuthUser = {}
+			let authUser = await config?.redisStore?.get(args?.authenticatedUser.username!)
+			console.log('authUserauthUser', authUser);
+			if (authUser) {
+				authUserDetails = JSON.parse(authUser) as AuthUser;
+				if (authUserDetails.requestsLeft !== "unlimited") {
+					await config?.redisStore?.set(args?.authenticatedUser.username!, JSON.stringify({
+						ip: args.key,
+						requestsLeft: Number(matchingLicense?.limit) - hits,
+						location: args.userCountry,
+						userName: args?.authenticatedUser.username!
+					}))
+				}
+			} else {
+				await config?.redisStore?.set(args?.authenticatedUser.username!, JSON.stringify({
+					ip: args.key,
+					requestsLeft: matchingLicense?.limit === 0 ? "unlimited" : Number(matchingLicense?.limit) - hits,
+					location: args.userCountry,
+					userName: args?.authenticatedUser.username!
+				}))
+			}
 		} else if (
 			args.authenticatedUser?.authenticated === false ||
 			!args.authenticatedUser?.authenticated
 		) {
-			console.log(' args.locations', args.locations, args.userCountry)
 
 			// Unauthenticated user
 			const matchingLocations = args.locations.find(
@@ -597,17 +633,25 @@ const rateLimit = (
 			} else if (hits > matchingLocations.limit) {
 				throw new Error('33333333333333333333')
 			}
+
+			let leftCount = matchingLocations === undefined ? args.limit : matchingLocations?.limit
+			await config?.redisStore?.set(args.key, JSON.stringify({
+				ip: args.key,
+				requestsLeft: Number(leftCount) - hits,
+				location: args.userCountry,
+				userName: null
+			}))
 		}
 	}
 
-	// Export the store's function to reset and fetch the rate limit info for a
-	// client based on their identifier.
-	;(middleware as RateLimitRequestHandler).resetKey =
-		config.store.resetKey.bind(config.store)
-	;(middleware as RateLimitRequestHandler).getKey =
-		typeof config.store.get === 'function'
-			? config.store.get.bind(config.store)
-			: getThrowFn
+		// Export the store's function to reset and fetch the rate limit info for a
+		// client based on their identifier.
+		; (middleware as RateLimitRequestHandler).resetKey =
+			config.store.resetKey.bind(config.store)
+		; (middleware as RateLimitRequestHandler).getKey =
+			typeof config.store.get === 'function'
+				? config.store.get.bind(config.store)
+				: getThrowFn
 
 	return middleware as RateLimitRequestHandler
 }
