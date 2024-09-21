@@ -395,13 +395,11 @@ const rateLimit = (
 			}
 
 			try {
+				console.log('keykey', key);
+				
 
-
-
-
-
-				const { country, region } = await getLocationByIp('49.50.0.0')
-				console.log('locationResult', country, region)
+				const { country, region } = await getLocationByIp(key)
+				console.log('country', country, 'region', 'keykey', key)
 				if (country) {
 					let loadBasedOnCountry: CountryLoad[] = []
 					console.log('loadBasedOnCountry', loadBasedOnCountry, country)
@@ -578,7 +576,8 @@ const rateLimit = (
 			key: string
 		}
 	) => {
-		console.log(' args.authenticatedUser', args, 'hits', hits)
+		console.log(' args.authenticatedUser', args?.authenticatedUser, 'hits', hits)
+		console.log(' args.authenticatedUser', args?.userCountry, 'hits', hits)
 		if (
 			args.authenticatedUser?.authenticated &&
 			args.authenticatedUser?.authenticated
